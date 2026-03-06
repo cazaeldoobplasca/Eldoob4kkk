@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baldwin IV - The Clan's Gate</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Amiri:ital@1&display=swap');
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body, html { height: 100vh; background: #000; overflow: hidden; font-family: 'Cinzel', serif; color: white; display: flex; align-items: center; justify-content: center; }
+
+        /* الخلفية المظلمة */
+        .mist-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at center, #111 0%, #000 100%); z-index: -2; }
+        .mist-layer { position: fixed; width: 200%; height: 200%; background: radial-gradient(circle, rgba(212, 175, 55, 0.02) 0%, transparent 70%); animation: moveMist 25s infinite alternate linear; z-index: -1; }
+        @keyframes moveMist { from { transform: translate(-10%, -10%); } to { transform: translate(10%, 10%); } }
+
+        /* الرصيد */
+        .crown-status { display: none; position: fixed; top: 25px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.95); border: 1px solid #d4af37; padding: 8px 25px; border-radius: 50px; align-items: center; gap: 10px; z-index: 1000; box-shadow: 0 0 20px rgba(212, 175, 55, 0.4); }
+
+        /* الكارد */
+        .main-card { background: rgba(10, 10, 10, 0.98); backdrop-filter: blur(20px); border: 1px solid rgba(212, 175, 55, 0.15); padding: 35px; width: 92%; max-width: 400px; text-align: center; position: relative; z-index: 10; }
+        .blood-alert { color: #800; font-size: 0.75rem; font-weight: 900; text-shadow: 0 0 10px red; margin-bottom: 25px; display: block; }
+
+        /* اللغز والعداد */
+        .scroll-design { background: rgba(15, 15, 15, 0.8); border: 1px double #d4af37; padding: 25px; margin: 20px 0; }
+        #equation-display { font-size: 3.5rem; color: #fff; text-shadow: 0 0 15px gold; }
+        .royal-btn { background: none; border: 1px solid #d4af37; color: #d4af37; padding: 12px 30px; cursor: pointer; font-size: 1.3rem; font-family: 'Cinzel'; transition: 0.3s; }
+        #unseal-screen { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 3000; flex-direction: column; align-items: center; justify-content: center; }
+        .huge-num { font-size: 10rem; color: #d4af37; text-shadow: 0 0 40px gold; animation: pulse 1s infinite; }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+
+        /* المهام */
+        .task-row { display: flex; align-items: center; justify-content: space-between; background: #080808; border: 1px solid #222; padding: 18px; margin: 12px 0; text-decoration: none; color: #fff; border-right: 4px solid #d4af37; cursor: pointer; }
+        .task-row.done { opacity: 0.3; pointer-events: none; filter: grayscale(1); }
+
+        /* شاشة التأكد الوهمي العميقة */
+        #verifying-msg { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.98); z-index: 500; flex-direction: column; align-items: center; justify-content: center; }
+        .fa-spin { color: gold; font-size: 2.5rem; margin-bottom: 15px; }
+
+        /* زر الشراء النهائي */
+        .final-buy-btn { width: 100%; padding: 20px; margin-top: 25px; background: none; border: 2px solid #333; color: #444; font-family: 'Cinzel'; font-weight: 900; cursor: not-allowed; transition: 0.5s; }
+        .final-buy-btn.active { border-color: #d4af37; color: #d4af37; cursor: pointer; box-shadow: 0 0 25px gold; }
+        
+        /* تأثير الدم النهائي */
+        #blood-end-screen { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 5000; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; }
+        .blood-text-final { color: #800; font-size: 1.8rem; font-weight: 900; text-shadow: 0 0 20px red; animation: flicker 0.2s infinite; }
+        @keyframes flicker { 0% { opacity: 1; } 50% { opacity: 0.8; } 100% { opacity: 0.9; } }
+
+        .shake-effect { animation: shakeMe 0.1s infinite; }
+        @keyframes shakeMe { 0% { transform: translate(2px,2px); } 50% { transform: translate(-3px,-4px); } 100% { transform: translate(0,0); } }
+    </style>
+</head>
+<body>
+
+    <div class="mist-bg"></div>
+    <div class="mist-layer"></div>
+
+    <div class="crown-status" id="status-bar">
+        <i class="fas fa-coins" style="color: gold;"></i>
+        <span id="gold-val">0</span>
+    </div>
+
+    <div id="unseal-screen">
+        <div style="color: #600; letter-spacing: 8px; margin-bottom: 20px; font-weight: 900;">UNSEALING...</div>
+        <div class="huge-num" id="cd-timer">5</div>
+    </div>
+
+    <div id="blood-end-screen">
+        <div class="blood-text-final" id="final-blood-msg"></div>
+    </div>
+
+    <div class="main-card" id="gate-card">
+        <span class="blood-alert">*DON'T LISTEN TO HIM, IGNORE HIM, DOOB🧠</span>
+
+        <div id="verifying-msg">
+            <i class="fas fa-circle-notch fa-spin"></i>
+            <div style="color:gold; letter-spacing: 2px; font-size: 0.9rem;">VERIFYING DATA...</div>
+            <div style="color:#555; font-size: 0.6rem; margin-top: 10px;">Checking API Response</div>
+        </div>
+
+        <div id="game-part">
+            <div class="scroll-design"><div id="equation-display">--</div></div>
+            <div style="display: flex; justify-content: center; gap: 15px;" id="opts-wrap"></div>
+        </div>
+
+        <div id="tasks-part" style="display: none;">
+            <div id="social-list"></div>
+            <button id="buy-btn" class="final-buy-btn" onclick="executeFinalShock()">BUY ACCESS (20 GOLD)</button>
+        </div>
+    </div>
+
+    <script>
+        let gold = parseInt(localStorage.getItem('f_gold')) || 0;
+        let isSolved = sessionStorage.getItem('f_solved') === 'true';
+        let claimedTasks = JSON.parse(localStorage.getItem('f_tasks')) || [];
+        let correct;
+
+        const apps = [
+            {id:'ig', name:'INSTAGRAM', url:'https://www.instagram.com/chennaf_anwar'},
+            {id:'fb', name:'FACEBOOK', url:'https://www.facebook.com/ayoub2007anwar'},
+            {id:'tk', name:'TIKTOK', url:'https://www.tiktok.com/@chennaf_ayoub'},
+            {id:'sc', name:'SNAPCHAT', url:'https://www.snapchat.com/add/chennaf_anwar'}
+        ];
+
+        function updateUI() {
+            document.getElementById('gold-val').innerText = gold;
+            if(isSolved) {
+                document.getElementById('game-part').style.display = 'none';
+                document.getElementById('tasks-part').style.display = 'block';
+                document.getElementById('status-bar').style.display = 'flex';
+                drawTasks();
+            } else { buildRiddle(); }
+            
+            const b = document.getElementById('buy-btn');
+            if(gold >= 20) { b.classList.add('active'); b.disabled = false; }
+            else { b.disabled = true; }
+
+            if(localStorage.getItem('f_pending')) {
+                let id = localStorage.getItem('f_pending');
+                localStorage.removeItem('f_pending');
+                startFakeVerification(id);
+            }
+        }
+
+        function drawTasks() {
+            const list = document.getElementById('social-list');
+            list.innerHTML = '';
+            apps.forEach(a => {
+                const done = claimedTasks.includes(a.id);
+                list.innerHTML += `<div onclick="goToSocial('${a.id}', '${a.url}')" class="task-row ${done?'done':''}">
+                    <span>${a.name}</span>
+                    <span style="color:gold; font-size:0.7rem;">${done?'CLAIMED':'+5 GOLD'}</span>
+                </div>`;
+            });
+        }
+
+        function goToSocial(id, url) {
+            localStorage.setItem('f_pending', id);
+            window.open(url, '_blank');
+        }
+
+        function startFakeVerification(id) {
+            const vMsg = document.getElementById('verifying-msg');
+            vMsg.style.display = 'flex';
+            setTimeout(() => {
+                vMsg.style.display = 'none';
+                if(!claimedTasks.includes(id)) {
+                    gold += 5;
+                    claimedTasks.push(id);
+                    localStorage.setItem('f_gold', gold);
+                    localStorage.setItem('f_tasks', JSON.stringify(claimedTasks));
+                    updateUI();
+                }
+            }, 3000);
+        }
+
+        function buildRiddle() {
+            let n1 = Math.floor(Math.random()*8)+2, n2 = Math.floor(Math.random()*7)+3;
+            correct = n1 + n2;
+            document.getElementById('equation-display').innerText = n1 + " + " + n2;
+            const wrap = document.getElementById('opts-wrap'); wrap.innerHTML = '';
+            [correct, correct+1, correct-2].sort(()=>Math.random()-0.5).forEach(c => {
+                const btn = document.createElement('button'); btn.className = 'royal-btn'; btn.innerText = c;
+                btn.onclick = () => {
+                    if(c === correct) {
+                        const s = document.getElementById('unseal-screen'); s.style.display = 'flex';
+                        let t = 5; let iv = setInterval(() => {
+                            t--; document.getElementById('cd-timer').innerText = t;
+                            if(t <= 0) { clearInterval(iv); isSolved = true; sessionStorage.setItem('f_solved', 'true'); s.style.display = 'none'; updateUI(); }
+                        }, 1000);
+                    } else { document.getElementById('gate-card').classList.add('shake-effect'); setTimeout(()=>document.getElementById('gate-card').classList.remove('shake-effect'), 200); buildRiddle(); }
+                };
+                wrap.appendChild(btn);
+            });
+        }
+
+        function executeFinalShock() {
+            if(gold < 20) return;
+            
+            const screen = document.getElementById('blood-end-screen');
+            const msg = document.getElementById('final-blood-msg');
+            screen.style.display = 'flex';
+            
+            // المرحلة الأولى: رسالة العشيرة
+            msg.innerText = "أصبحت من عشيرتنا.. ستصلك رسالة قريباً";
+            
+            // المرحلة الثانية: هاتفك مخترق
+            setTimeout(() => {
+                msg.style.fontSize = "3rem";
+                msg.innerText = "هاتفك مخترق ⚠️";
+                document.body.classList.add('shake-effect');
+                
+                // تأثير اهتزاز وتغيير ألوان مرعب
+                setInterval(() => {
+                    screen.style.background = screen.style.background === 'red' ? 'black' : 'red';
+                    msg.style.color = msg.style.color === 'white' ? 'black' : 'white';
+                }, 100);
+            }, 4000);
+        }
+
+        window.onload = updateUI;
+    </script>
+</body>
+</html>
